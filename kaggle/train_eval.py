@@ -122,7 +122,10 @@ for n in CONFIG["sizes"]:
         use_gradient_checkpointing="unsloth", random_state=CONFIG["seed"])
 
     def fmt(ex):
-        return {"text": tok.apply_chat_template(ex["messages"], tokenize=False)}
+        # Qwen3's chat template puts an empty "<think>\n\n</think>\n\n" before the final answer.
+        # Strip it so the model learns to output only the JSON, matching the inference prompt.
+        text = tok.apply_chat_template(ex["messages"], tokenize=False)
+        return {"text": text.replace("<think>\n\n</think>\n\n", "")}
 
     train_ds = Dataset.from_list([{"messages": r["messages"]} for r in read_jsonl(f"train_{n}.jsonl")]).map(fmt)
     val_ds = Dataset.from_list([{"messages": r["messages"]} for r in read_jsonl("val.jsonl")][: CONFIG["val_limit"]]).map(fmt)
