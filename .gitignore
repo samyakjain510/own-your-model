@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+runs/
+data/raw/
+data/full/
+*.safetensors
+*.gguf
+.DS_Store
+.env
