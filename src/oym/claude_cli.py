@@ -37,6 +37,7 @@ class ClaudeResult:
     cost_usd_equiv: float | None  # what this call would cost at API list price, as the CLI reports it
     cached: bool
     raw: dict
+    models_used: list  # model IDs the CLI reports actually answering
 
 
 def _key(model: str, system: str, prompt: str, schema: dict | None) -> str:
@@ -44,7 +45,7 @@ def _key(model: str, system: str, prompt: str, schema: dict | None) -> str:
     return hashlib.sha256(blob).hexdigest()
 
 
-def call(prompt: str, *, system: str, model: str = "haiku", schema: dict | None = None,
+def call(prompt: str, *, system: str, model: str = "claude-haiku-5-5", schema: dict | None = None,
          timeout: int = 300, retries: int = 2) -> ClaudeResult:
     key = _key(model, system, prompt, schema)
     path = CACHE_DIR / key[:2] / f"{key}.json"
@@ -98,4 +99,5 @@ def _parse(raw: dict, model: str, cached: bool) -> ClaudeResult:
             start, end = text.find("{"), text.rfind("}")
             data = json.loads(text[start : end + 1]) if start >= 0 < end else text
     return ClaudeResult(data=data, model=model, usage=raw.get("usage", {}),
-                        cost_usd_equiv=raw.get("total_cost_usd"), cached=cached, raw=raw)
+                        cost_usd_equiv=raw.get("total_cost_usd"), cached=cached, raw=raw,
+                        models_used=sorted(raw.get("modelUsage", {}).keys()))
