@@ -61,9 +61,18 @@ def call(prompt: str, *, system: str, model: str = "haiku", schema: dict | None 
     if schema is not None:
         cmd += ["--json-schema", json.dumps(schema)]
 
+    # $0 rule: an API key in the environment would switch the CLI to paid API
+    # billing, so strip it and use only the subscription login.
+    env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
+    # Run from an empty folder so no CLAUDE.md, memory or project settings get
+    # loaded into the prompt and inflate token counts.
+    workdir = CACHE_DIR.parent / "_claude_empty_cwd"
+    workdir.mkdir(parents=True, exist_ok=True)
+
     last_err = None
     for attempt in range(retries + 1):
-        proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=timeout,
+                              env=env, cwd=workdir)
         try:
             raw = json.loads(proc.stdout)
         except json.JSONDecodeError:
