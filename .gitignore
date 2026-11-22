@@ -13,3 +13,4 @@ data/full/
 data/eval/*.jsonl
 !data/eval/*.ids.txt
 data/sample/*.jsonl
+data/train/*.jsonl

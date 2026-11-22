@@ -1,0 +1,87 @@
+{
+  "window": [
+    "2025-09-01",
+    "2026-02-28"
+  ],
+  "seed": 7,
+  "complaints_in_window": 326813,
+  "exact_copy_clusters": 187657,
+  "clusters_matching_dev_or_test_text": 0,
+  "clusters_whose_label_changed_by_majority_vote": 378,
+  "dropped_while_sampling": {
+    "near_copy_within_train": 456,
+    "near_copy_of_dev_or_test": 6
+  },
+  "leakage_check": "passed (exact + MinHash near-dup, Jaccard >= 0.8, vs dev_v1 and test_v2)",
+  "avoided_items": 1600,
+  "system_prompt": "Route this consumer finance complaint. Reply with JSON: {\"product\": \"...\", \"issue\": \"...\"} using the CFPB product and issue names.",
+  "files": {
+    "val": {
+      "n": 300,
+      "sha256": "d1a7ac928d6484046333ce2bef33a55702ac473c8c914528098876ad71136860",
+      "by_product": {
+        "Credit reporting or other personal consumer reports": 114,
+        "Debt collection": 63,
+        "Credit card": 36,
+        "Checking or savings account": 31,
+        "Money transfer, virtual currency, or money service": 13,
+        "Vehicle loan or lease": 12,
+        "Mortgage": 11,
+        "Payday loan, title loan, personal loan, or advance loan": 10,
+        "Student loan": 6,
+        "Prepaid card": 4
+      }
+    },
+    "train_500": {
+      "n": 500,
+      "sha256": "834b7e75d19d71fd3d829328ca6087ed61b396081c4ff305a1b5963ed3163646",
+      "by_product": {
+        "Credit reporting or other personal consumer reports": 205,
+        "Debt collection": 96,
+        "Credit card": 69,
+        "Checking or savings account": 37,
+        "Money transfer, virtual currency, or money service": 30,
+        "Payday loan, title loan, personal loan, or advance loan": 18,
+        "Vehicle loan or lease": 17,
+        "Mortgage": 17,
+        "Prepaid card": 5,
+        "Student loan": 4,
+        "Debt or credit management": 2
+      }
+    },
+    "train_2000": {
+      "n": 2000,
+      "sha256": "132cbec54cba62548db0220cf117f084ee7692610ff0325aafa456998ed0ef4e",
+      "by_product": {
+        "Credit reporting or other personal consumer reports": 858,
+        "Debt collection": 340,
+        "Credit card": 235,
+        "Checking or savings account": 219,
+        "Money transfer, virtual currency, or money service": 109,
+        "Mortgage": 73,
+        "Vehicle loan or lease": 57,
+        "Payday loan, title loan, personal loan, or advance loan": 55,
+        "Student loan": 29,
+        "Prepaid card": 17,
+        "Debt or credit management": 8
+      }
+    },
+    "train_8000": {
+      "n": 8000,
+      "sha256": "f6c4633d9ad59a03982cbfe012f41a2fa8c808df0353360df6aca3e7b9a72068",
+      "by_product": {
+        "Credit reporting or other personal consumer reports": 3406,
+        "Debt collection": 1419,
+        "Credit card": 907,
+        "Checking or savings account": 843,
+        "Money transfer, virtual currency, or money service": 433,
+        "Mortgage": 314,
+        "Vehicle loan or lease": 232,
+        "Payday loan, title loan, personal loan, or advance loan": 184,
+        "Student loan": 144,
+        "Prepaid card": 83,
+        "Debt or credit management": 35
+      }
+    }
+  }
+}
