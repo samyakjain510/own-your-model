@@ -19,3 +19,4 @@ What each AI agent did, and what a human checked. This goes into the write-up.
 | 2026-11-22 | Claude (lead) | Open-coded 24 pilot misses into failure taxonomy draft 1 (`docs/phase2/failure-taxonomy.md`) | none — no human reviewed the codes |
 | 2026-11-22 | Claude (lead) | Decided: publish IDs + download script, never re-host text; purged sample text from local git history; quickstart re-downloads and matched the recorded hash | Samyak delegated the decision |
 | 2026-11-22 | Claude (lead) | Model-free label-noise check on exact-copy clusters; built nested train sets 500/2,000/8,000 + val 300 with majority-vote labels, dedup, decontamination; dataset card; lesson 4 | none |
+| 2026-11-22 | Claude (lead) | Set up Kaggle CLI with Samyak's token (he placed it); uploaded private dataset `oym-cfpb-routing-v1` (train sets, val, dev prompts; no test set); wrote Unsloth train+eval script; pushed private smoke run on T4 | Samyak created the Kaggle account and token |

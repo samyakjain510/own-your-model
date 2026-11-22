@@ -15,3 +15,5 @@ data/eval/*.jsonl
 data/sample/*.jsonl
 data/train/*.jsonl
 data/mlx/
+data/kaggle/
+.venv/
