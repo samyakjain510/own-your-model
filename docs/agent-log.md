@@ -12,3 +12,5 @@ What each AI agent did, and what a human checked. This goes into the write-up.
 | 2026-11-22 | Claude (lead) | Style check on competitor/prior-work docs: one wording fix | none yet |
 | 2026-11-22 | Research agent (Sonnet) | Models/trainers/free compute/price inputs → `docs/phase0/models-compute.md` (recommends Qwen3-4B-Instruct-2507, Granite-4.1-3B, Phi-4-mini) | none yet |
 | 2026-11-22 | Claude (lead) | Claude runner: strips API keys from env (keeps $0), runs from an empty folder to avoid extra tokens | none yet |
+| 2026-11-22 | Research agent (Sonnet) | Found CFPB stopped publishing narratives (Aug 2026); built 300-complaint balanced sample from CFPB Narratives Archive (July 2026 ZIP, seed 42); license notes, taxonomy dates → `docs/phase0/dataset.md` | none yet |
+| 2026-11-22 | Claude (lead) | Loader maps archive column names in JSONL; quickstart runs on sample: 300 traces, 4,474 CFPB masks normalized, 0 other PII hits | none yet |

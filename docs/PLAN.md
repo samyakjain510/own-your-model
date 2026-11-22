@@ -51,6 +51,7 @@ We split by time. Training uses complaints from earlier months and the test set 
 
 - Subscription limits cap how many Claude calls we can make, so samples stay in the hundreds. Intervals will be wide, and we will say so.
 - A model trained on consumer labels may learn consumers' labeling habits, mistakes included. That's why we keep the two test views.
-- Taxonomy drift: CFPB changed its product categories over the years. We stick to one period with stable labels.
+- Taxonomy drift: CFPB changed its product categories over the years (Apr 2017, Aug 2023, Oct 2026). We stick to one period with stable labels: complaints received from Aug 24, 2023 onward.
+- CFPB stopped publishing narratives on Aug 14, 2026 (see `docs/phase0/dataset.md`). The live API no longer returns them, so the text comes from CFPB's public Narratives Archive (monthly ZIPs). The data window therefore ends Aug 14, 2026. Until we know why CFPB stopped, the plan is to avoid re-hosting complaint text. We share complaint IDs, our labels and a script that downloads the text from CFPB, along with the adapters.
 - Free GPUs are slow and older (T4), so the latency we measure there won't match production GPUs. We'll use published benchmarks for those, cite them, and keep them separate from our own measurements.
 - At list prices, Haiku may beat self-hosting on cost at most volumes. If that's the answer, we publish it.

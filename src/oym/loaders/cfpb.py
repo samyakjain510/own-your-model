@@ -77,7 +77,9 @@ def _iter_raw(path: Path) -> Iterator[dict]:
             for line in f:
                 if line.strip():
                     rec = json.loads(line)
-                    yield rec.get("_source", rec)
+                    rec = rec.get("_source", rec)
+                    # The narratives archive uses CSV column names; map them too.
+                    yield {CSV_TO_API.get(k, k): v for k, v in rec.items()}
 
 
 def record_to_trace(rec: dict) -> Trace | None:
