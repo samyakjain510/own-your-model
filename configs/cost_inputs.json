@@ -1,0 +1,32 @@
+{
+  "_note": "Prices are published list prices gathered 2026-11-22 (see docs/phase0/models-compute.md for every source link). Items marked assumption are not measured and are meant to be changed.",
+  "claude_prices_per_mtok": {
+    "claude-haiku-5-5": {"input": 0.10, "cache_write_5m": 0.125, "cache_read": 0.01, "output": 0.50,
+                          "source": "https://platform.claude.com/docs/en/about-claude/pricing.md"},
+    "claude-sonnet-5-5": {"input": 2.0, "cache_write_5m": 2.50, "cache_read": 0.10, "output": 10.0,
+                           "source": "https://platform.claude.com/docs/en/about-claude/pricing.md"}
+  },
+  "batch_discount": {"value": 0.5, "source": "Batch API 50% off input and output; stacks with caching (same page)"},
+  "hosted_open_model_per_mtok": {
+    "label": "DeepInfra Qwen3.5-9B (closest listed size to our 4B model)",
+    "input": 0.10, "output": 0.15, "source": "https://deepinfra.com/pricing"
+  },
+  "gpu_hourly": {
+    "L4 (RunPod secure cloud)": {"usd_per_hour": 0.69, "source": "https://www.runpod.io/pricing"},
+    "L4 (AWS g6.xlarge)": {"usd_per_hour": 0.805, "source": "https://instances.vantage.sh/aws/ec2/g6.xlarge"},
+    "A10G (AWS g5.xlarge)": {"usd_per_hour": 1.006, "source": "https://instances.vantage.sh/aws/ec2/g5.xlarge"}
+  },
+  "self_host": {
+    "hours_per_month": 730,
+    "max_utilization": {"value": 0.6, "assumption": true, "why": "headroom for traffic peaks; a GPU run near 100% busy queues requests"},
+    "throughput_note": "Throughput is measured on a Kaggle T4 with plain Hugging Face generate (batch 16). An L4 is a newer, faster card, so pricing T4 throughput at L4 rates overstates self-hosting cost. A serving engine like vLLM would raise throughput further. Both make the self-host numbers conservative."
+  },
+  "engineering": {
+    "assumption": true,
+    "build_days": 10,
+    "maintain_days_per_month": 2,
+    "loaded_cost_per_day_usd": 1000,
+    "amortize_build_over_months": 12,
+    "why": "Placeholder for one engineer building the serving path and retraining monthly. Not measured; the sensitivity table shows how the answer moves when this changes."
+  }
+}
