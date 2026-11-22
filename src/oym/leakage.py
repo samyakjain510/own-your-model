@@ -48,6 +48,39 @@ def jaccard(a: set, b: set) -> float:
     return len(a & b) / len(a | b) if a or b else 0.0
 
 
+class NearDupIndex:
+    """Incremental MinHash index: add items one at a time, query each new item against all added so far."""
+
+    def __init__(self, num_perm: int = 64, bands: int = 16, threshold: float = 0.8):
+        self.num_perm, self.bands, self.rows, self.threshold = num_perm, bands, num_perm // bands, threshold
+        self.buckets: dict = defaultdict(set)
+        self.shingles: dict[str, set] = {}
+        self.exact: dict[str, str] = {}
+
+    def _sig_keys(self, sh):
+        sig = _minhash(sh, self.num_perm)
+        return [(b, sig[b * self.rows : (b + 1) * self.rows]) for b in range(self.bands)]
+
+    def query(self, text: str):
+        """Return (kind, matched_id, jaccard) for the closest existing item at or above threshold, else None."""
+        h = exact_hash(text)
+        if h in self.exact:
+            return ("exact", self.exact[h], 1.0)
+        sh = shingles(text)
+        cands = set()
+        for k in self._sig_keys(sh):
+            cands |= self.buckets.get(k, set())
+        best = max(((jaccard(sh, self.shingles[c]), c) for c in cands), default=(0.0, None))
+        return ("near", best[1], round(best[0], 3)) if best[0] >= self.threshold else None
+
+    def add(self, item_id: str, text: str) -> None:
+        sh = shingles(text)
+        self.shingles[item_id] = sh
+        self.exact.setdefault(exact_hash(text), item_id)
+        for k in self._sig_keys(sh):
+            self.buckets[k].add(item_id)
+
+
 def find_overlap(train_texts: dict[str, str], test_texts: dict[str, str], threshold: float = 0.8,
                  num_perm: int = 64, bands: int = 16) -> list[dict]:
     """Return test items that match a training item exactly or with Jaccard >= threshold.

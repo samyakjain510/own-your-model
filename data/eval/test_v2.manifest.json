@@ -1,0 +1,37 @@
+{
+  "version": "v2",
+  "split": "test",
+  "avoided_split": "data/eval/dev_v1.jsonl",
+  "n_avoided_ids": 800,
+  "test_file": "test_v2.jsonl",
+  "test_sha256": "ccec1cfbdf468c6b62ac392a90952de122f7cef5e7120b65709912e7ebe27afe",
+  "n": 800,
+  "seed": 20261123,
+  "train_to_exclusive": "2026-03-01",
+  "test_window": [
+    "2026-04-01",
+    "2026-08-14"
+  ],
+  "test_pool_size": 64603,
+  "dropped": {
+    "exact_dup_of_train": 108,
+    "exact_dup_within_test": 15,
+    "near_dup_of_avoided_split": 2
+  },
+  "by_product": {
+    "Debt collection": 205,
+    "Checking or savings account": 161,
+    "Credit card": 152,
+    "Money transfer, virtual currency, or money service": 68,
+    "Mortgage": 62,
+    "Vehicle loan or lease": 48,
+    "Student loan": 32,
+    "Payday loan, title loan, personal loan, or advance loan": 28,
+    "Credit reporting or other personal consumer reports": 23,
+    "Prepaid card": 15,
+    "Debt or credit management": 6
+  },
+  "label_pairs_in_train_window": 138,
+  "max_words_at_prompt_time": 500,
+  "corpus_sha256_note": "see data/full/narratives.stats.json"
+}

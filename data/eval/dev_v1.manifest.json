@@ -1,0 +1,36 @@
+{
+  "version": "v1",
+  "test_file": "dev_v1.jsonl",
+  "test_sha256": "37edd14828f79984d172aa37ece6bcfb665dd3c09315a5180a78d99708abe1dd",
+  "n": 800,
+  "seed": 20261122,
+  "train_to_exclusive": "2026-03-01",
+  "test_window": [
+    "2026-04-01",
+    "2026-08-14"
+  ],
+  "test_pool_size": 65403,
+  "dropped": {
+    "exact_dup_of_train": 100,
+    "exact_dup_within_test": 20,
+    "near_dup_within_test": 2
+  },
+  "by_product": {
+    "Debt collection": 238,
+    "Credit card": 156,
+    "Checking or savings account": 155,
+    "Money transfer, virtual currency, or money service": 76,
+    "Mortgage": 51,
+    "Vehicle loan or lease": 34,
+    "Credit reporting or other personal consumer reports": 30,
+    "Payday loan, title loan, personal loan, or advance loan": 27,
+    "Student loan": 20,
+    "Prepaid card": 7,
+    "Debt or credit management": 6
+  },
+  "label_pairs_in_train_window": 138,
+  "max_words_at_prompt_time": 500,
+  "corpus_sha256_note": "see data/full/narratives.stats.json",
+  "split": "dev",
+  "note": "Frozen 2026-11-22 as test_v1. Renamed to dev_v1 after a 100-item pilot was run on it and its errors were read, which made it unfit as a clean test set. Used for prompt tuning only."
+}

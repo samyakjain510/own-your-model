@@ -93,6 +93,7 @@ def record_to_trace(rec: dict) -> Trace | None:
         input=_normalize_text(narrative),
         # Known at intake: when and how it arrived, and the consumer's state/tags.
         context={
+            "company": _clean(rec.get("company")),  # named by the consumer on the intake form
             "date_received": date[:10] or None,
             "submitted_via": _clean(rec.get("submitted_via")),
             "state": _clean(rec.get("state")),
@@ -108,7 +109,6 @@ def record_to_trace(rec: dict) -> Trace | None:
         output_origin="consumer_selected",
         # Known only later. Kept out of model inputs to avoid leaking the answer.
         metadata={
-            "company": _clean(rec.get("company")),
             "company_response": _clean(rec.get("company_response")),
             "company_public_response": _clean(rec.get("company_public_response")),
             "timely": _clean(rec.get("timely")),
