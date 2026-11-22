@@ -1,0 +1,33 @@
+{
+  "date_fetched": "2026-11-22",
+  "source_url": "https://files.consumerfinance.gov/f/documents/CCDB_Export_20_July_2026.zip",
+  "source_zip_bytes": 16958404,
+  "source_csv_name": "CCDB_Export_20_July_2026.csv",
+  "source_csv_rows_scanned": 672036,
+  "rows_with_narrative_and_date_ok": 10002,
+  "filters": {
+    "date_received_min": "2026-07-01",
+    "narrative_not_empty": true
+  },
+  "sampling": "equal share per product, then fill leftovers; random.Random(seed)",
+  "seed": 42,
+  "n_requested": 300,
+  "count": 300,
+  "product_counts": {
+    "Credit reporting or other personal consumer reports": 28,
+    "Credit card": 28,
+    "Checking or savings account": 28,
+    "Mortgage": 27,
+    "Student loan": 27,
+    "Payday loan, title loan, personal loan, or advance loan": 27,
+    "Money transfer, virtual currency, or money service": 27,
+    "Prepaid card": 27,
+    "Debt collection": 27,
+    "Debt or credit management": 27,
+    "Vehicle loan or lease": 27
+  },
+  "api_probe_url": "https://www.consumerfinance.gov/data-research/consumer-complaints/search/api/v1/?size=1&no_aggs=true&has_narrative=true&sort=created_date_desc",
+  "api_probe_result": "HTTP 200 but records carry no narrative field and has_narrative is ignored (checked 2026-11-22)",
+  "sha256": "07eaea2a8ff2a30c7d064c2926bf4982c9bb48dbd90a70475dbfe2a620fc1c26",
+  "out": "data/sample/cfpb_sample.jsonl"
+}
