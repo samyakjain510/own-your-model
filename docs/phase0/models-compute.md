@@ -242,3 +242,7 @@ For the cost model, treat the subscription as free for this project, record the 
 - Does the Kaggle account pass phone verification, and what weekly hours does its account page show?
 - Does `claude -p` on this machine use the subscription login in a clean folder, and how many extra input tokens does it add per call?
 - Which provider, if any, hosts a fine-tuned small model for a per-token price? Not checked.
+
+## Note on GLM (added 2026-11-22, Claude lead)
+
+Samyak asked about GLM (Zhipu / Z.ai). The GLM models with the strongest reputation are large mixture-of-experts models, far beyond what free GPUs can fine-tune. The newest small official GLM models we found are GLM-4-9B-0414 and GLM-Z1-9B-0414 (9B, released April 2025, MIT per third-party listings; check the official card). Unsloth hosts re-uploads ([GLM-4-9B-0414](https://featherless.ai/models/unsloth/GLM-4-9B-0414), [GLM-Z1-9B-0414](https://featherless.ai/models/unsloth/GLM-Z1-9B-0414)). They are older and about twice the size of our 3–4B picks, so they're not in the first round. A large GLM model is a good fit for cost option (b), "rent an open model from a hosting company", if a host lists it with a published price.

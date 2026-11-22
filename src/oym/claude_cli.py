@@ -26,6 +26,7 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 
+RUNNER_VERSION = "2"  # bump when CLI flags change, so old cached answers are not reused
 CACHE_DIR = Path(os.environ.get("OYM_CACHE", Path(__file__).resolve().parents[2] / "runs" / "_claude_cache"))
 
 
@@ -41,7 +42,7 @@ class ClaudeResult:
 
 
 def _key(model: str, system: str, prompt: str, schema: dict | None) -> str:
-    blob = json.dumps([model, system, prompt, schema], sort_keys=True).encode()
+    blob = json.dumps([RUNNER_VERSION, model, system, prompt, schema], sort_keys=True).encode()
     return hashlib.sha256(blob).hexdigest()
 
 
@@ -58,7 +59,10 @@ def call(prompt: str, *, system: str, model: str = "claude-haiku-5-5", schema: d
         raise RuntimeError("Claude Code CLI not found. Install it and log in, or use an API-key backend.")
 
     cmd = [exe, "-p", "--model", model, "--system-prompt", system, "--output-format", "json",
-           "--tools", "", "--no-session-persistence"]
+           "--tools", "", "--no-session-persistence",
+           # Skip the user's MCP servers. Without this, every connected app's tool
+           # definitions ride along: measured 281,839 prompt tokens per call vs 902 with it.
+           "--strict-mcp-config"]
     if schema is not None:
         cmd += ["--json-schema", json.dumps(schema)]
 

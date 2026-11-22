@@ -8,6 +8,14 @@ For one narrow, high-volume job, can a small open model trained on a company's o
 
 The job in this case study: read a consumer's complaint about a financial product and route it. That means picking the product (credit card, mortgage, debt collection...) and the issue (billing dispute, wrong info on a credit report...). Data: the CFPB Consumer Complaint Database, which is US government data in the public domain.
 
+## Scope (version 1)
+
+- **User:** an engineer or technical PM at a company with one narrow, high-volume job, asked "could we do this cheaper or in-house?"
+- **Input:** their logs (past inputs plus the decision made) and a ~10-line config: input column, decision columns, monthly volume, models to compare, hardware and staff costs.
+- **Output:** a scorecard on their own data with intervals, trained adapters, and a one-page decision with break-even volume and remaining failure cases.
+- **Version 1 covers only pick-from-a-list jobs** (routing, tagging, multi-field classification), where code can grade answers. Free-text jobs (replies, summaries) need a human-checked AI judge and are left for later.
+- The CFPB case study is the kit's first user. See `docs/learn/01-what-the-kit-does.md`.
+
 ## Ground rules
 
 - **$0 spend.** No API keys and no paid GPUs. Claude runs through the Claude Code subscription in headless mode (`claude -p`). Training runs on free Kaggle or Colab GPUs, or on the M4 Mac with MLX. Cost figures for paid options come from published price lists and are never bought.

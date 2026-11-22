@@ -14,3 +14,4 @@ What each AI agent did, and what a human checked. This goes into the write-up.
 | 2026-11-22 | Claude (lead) | Claude runner: strips API keys from env (keeps $0), runs from an empty folder to avoid extra tokens | none yet |
 | 2026-11-22 | Research agent (Sonnet) | Found CFPB stopped publishing narratives (Aug 2026); built 300-complaint balanced sample from CFPB Narratives Archive (July 2026 ZIP, seed 42); license notes, taxonomy dates → `docs/phase0/dataset.md` | none yet |
 | 2026-11-22 | Claude (lead) | Loader maps archive column names in JSONL; quickstart runs on sample: 300 traces, 4,474 CFPB masks normalized, 0 other PII hits | none yet |
+| 2026-11-22 | Claude (lead) | Found and fixed 281,839-token hidden overhead per CLI call (`--strict-mcp-config` → 902); versioned answer cache; GLM check; scope v1 written; lessons 01–02; `docs/what-went-wrong.md` started | Samyak read lesson 00 |
