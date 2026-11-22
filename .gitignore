@@ -12,3 +12,4 @@ data/full/
 # Eval text stays local until the publish decision; IDs, manifests and label lists are tracked.
 data/eval/*.jsonl
 !data/eval/*.ids.txt
+data/sample/*.jsonl

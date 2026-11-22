@@ -6,6 +6,7 @@ import argparse
 import collections
 import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -60,9 +61,31 @@ def cmd_traces(args) -> int:
     return 0
 
 
-def cmd_quickstart(args) -> int:
+def ensure_sample() -> bool:
+    """Download the sample from CFPB on first run (we never re-host complaint text), then
+    check it byte-for-byte against the SHA-256 recorded when the sample was first drawn."""
+    meta_path = SAMPLE.with_suffix(".meta.json")
     if not SAMPLE.exists():
-        print(f"Sample not found at {SAMPLE}. Run: python scripts/fetch_cfpb_sample.py", file=sys.stderr)
+        print("Downloading the sample from CFPB's Narratives Archive (about 17 MB, one time)...")
+        cmd = [sys.executable, str(ROOT / "scripts" / "fetch_cfpb_sample.py"), "--out", str(SAMPLE)]
+        if Path("/etc/ssl/cert.pem").exists():
+            cmd += ["--cafile", "/etc/ssl/cert.pem"]
+        meta_backup = meta_path.read_text() if meta_path.exists() else None
+        if subprocess.run(cmd, cwd=ROOT).returncode != 0:
+            print("Download failed. See scripts/fetch_cfpb_sample.py --help.", file=sys.stderr)
+            return False
+        if meta_backup is not None:  # keep the original recorded hash for the check below
+            meta_path.write_text(meta_backup)
+    if meta_path.exists():
+        expected = json.loads(meta_path.read_text()).get("sha256")
+        if expected and sha256_file(SAMPLE) != expected:
+            print(f"Warning: sample hash differs from the recorded one ({expected[:12]}...). "
+                  "CFPB may have changed the archive file.", file=sys.stderr)
+    return True
+
+
+def cmd_quickstart(args) -> int:
+    if not ensure_sample():
         return 1
     args.input = str(SAMPLE)
     args.out = str(ROOT / "runs" / "quickstart" / "traces.jsonl")
