@@ -40,6 +40,22 @@ def parse(text):
         return None
 
 
+def fit(messages, tok, max_len):
+    """Shorten the complaint (last user message) until the whole prompt, including the
+    'now answer' cue at its end, fits in max_len tokens. Cutting tokens from the end
+    instead would drop that cue, and the model would keep writing the complaint."""
+    msgs = [dict(m) for m in messages]
+    for _ in range(50):
+        prompt = tok.apply_chat_template(msgs, tokenize=False, add_generation_prompt=True)
+        n = len(tok(prompt).input_ids)
+        if n <= max_len:
+            return prompt
+        words = msgs[-1]["content"].split(" ")
+        keep = max(20, int(len(words) * max_len / n) - 10)
+        msgs[-1]["content"] = " ".join(words[:keep]) + " [truncated]"
+    return prompt
+
+
 def predict(model, tok, rows, key, max_len, batch_size):
     FastLanguageModel.for_inference(model)
     tok.padding_side = "left"
@@ -50,7 +66,7 @@ def predict(model, tok, rows, key, max_len, batch_size):
     t0 = time.time()
     for i in range(0, len(rows), batch_size):
         batch = rows[i : i + batch_size]
-        prompts = [tok.apply_chat_template(r[key], tokenize=False, add_generation_prompt=True) for r in batch]
+        prompts = [fit(r[key], tok, max_len) for r in batch]
         enc = tok(prompts, return_tensors="pt", padding=True, truncation=True, max_length=max_len).to("cuda")
         with torch.no_grad():
             out = model.generate(**enc, max_new_tokens=64, do_sample=False, pad_token_id=tok.pad_token_id)
