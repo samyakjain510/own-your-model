@@ -97,11 +97,12 @@ def break_even(rent_per_1k: float, own_monthly_fn, lo: float = 1e3, hi: float = 
     return None
 
 
-def report(claude_runs: dict[str, str], small_ft_result: str, small_zs_result: str | None,
+def report(claude_runs: dict[str, tuple[str, str]], small_ft_result: str, small_zs_result: str | None,
            inputs_path: str | Path = ROOT / "configs" / "cost_inputs.json",
            volumes=(10_000, 100_000, 1_000_000, 10_000_000),
            throughput: tuple[float, str] | None = None) -> dict:
-    """throughput: (items per second on one GPU, where that number came from). Defaults to the
+    """claude_runs: {label: (price key in cost_inputs.json, run dir)}.
+    throughput: (items per second on one GPU, where that number came from). Defaults to the
     speed measured while scoring dev in the training job (plain Hugging Face generate)."""
     inp = json.loads(Path(inputs_path).read_text())
     disc = inp["batch_discount"]["value"]
@@ -114,14 +115,12 @@ def report(claude_runs: dict[str, str], small_ft_result: str, small_zs_result: s
            "per_1k": {}, "monthly_at_volume": {}, "break_even_monthly_volume": {}}
 
     rent = {}
-    for model, run in claude_runs.items():
+    for model, (price_key, run) in claude_runs.items():
         prof = claude_profile_from_run(ROOT / run)
-        price = inp["claude_prices_per_mtok"][model]
+        price = inp["claude_prices_per_mtok"][price_key]
         rent[f"(a) {model}, batch"] = claude_cost_per_1k(prof, price, disc)
         out["per_1k"][f"(a) {model}, standard"] = round(claude_cost_per_1k(prof, price, 0.0), 4)
         out["per_1k"][f"(a) {model}, as the CLI billed it (1-hour cache writes, no batch)"] = round(prof.cli_cost_per_1k, 4)
-        out["per_1k"][f"(a) {model}, batch, no thinking (what-if: accuracy not measured)"] = round(
-            claude_cost_per_1k(prof, price, disc, thinking=False), 4)
         out.setdefault("claude_tokens_per_task", {})[model] = {k: round(getattr(prof, k), 1) for k in
                                                                 ("input", "cache_write", "cache_read", "output", "thinking")}
 

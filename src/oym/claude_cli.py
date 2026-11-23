@@ -41,14 +41,17 @@ class ClaudeResult:
     models_used: list  # model IDs the CLI reports actually answering
 
 
-def _key(model: str, system: str, prompt: str, schema: dict | None) -> str:
-    blob = json.dumps([RUNNER_VERSION, model, system, prompt, schema], sort_keys=True).encode()
+def _key(model: str, system: str, prompt: str, schema: dict | None, effort: str | None = None) -> str:
+    parts = [RUNNER_VERSION, model, system, prompt, schema] + ([f"effort={effort}"] if effort else [])
+    blob = json.dumps(parts, sort_keys=True).encode()
     return hashlib.sha256(blob).hexdigest()
 
 
 def call(prompt: str, *, system: str, model: str = "claude-haiku-5-5", schema: dict | None = None,
-         timeout: int = 300, retries: int = 2) -> ClaudeResult:
-    key = _key(model, system, prompt, schema)
+         timeout: int = 300, retries: int = 2, effort: str | None = None) -> ClaudeResult:
+    """effort: the CLI's --effort level (low ... max). None keeps the CLI default.
+    Lower effort means less thinking, so fewer output tokens."""
+    key = _key(model, system, prompt, schema, effort)
     path = CACHE_DIR / key[:2] / f"{key}.json"
     if path.exists():
         raw = json.loads(path.read_text())
@@ -65,6 +68,8 @@ def call(prompt: str, *, system: str, model: str = "claude-haiku-5-5", schema: d
            "--strict-mcp-config"]
     if schema is not None:
         cmd += ["--json-schema", json.dumps(schema)]
+    if effort:
+        cmd += ["--effort", effort]
 
     # $0 rule: an API key in the environment would switch the CLI to paid API
     # billing, so strip it and use only the subscription login.

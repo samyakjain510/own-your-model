@@ -99,7 +99,7 @@ def user_prompt(batch, prompt_version: str = "route-v1") -> str:
 
 def run(eval_dir: str | Path, run_dir: str | Path, *, model: str, split: str = "dev", version: str = "v1",
         start: int = 0, limit: int | None = None, batch_size: int = 10, seed: int = 0,
-        prompt_version: str = "route-v1", workers: int = 4) -> dict:
+        prompt_version: str = "route-v1", workers: int = 4, effort: str | None = None) -> dict:
     assert prompt_version in PROMPT_VERSIONS
     eval_dir, run_dir = Path(eval_dir), Path(run_dir)
     test_path = verify_frozen(eval_dir, version, name=split)
@@ -126,6 +126,7 @@ def run(eval_dir: str | Path, run_dir: str | Path, *, model: str, split: str = "
         "batch_size": batch_size,
         "seed": seed,
         "max_words": MAX_WORDS,
+        "effort": effort or "CLI default",
         "backend": f"claude CLI headless, runner v{claude_cli.RUNNER_VERSION}",
     }
     (run_dir / "config.json").write_text(json.dumps(config, indent=2))
@@ -134,7 +135,8 @@ def run(eval_dir: str | Path, run_dir: str | Path, *, model: str, split: str = "
     def one(bi_batch):
         bi, batch = bi_batch
         t0 = time.time()
-        r = claude_cli.call(user_prompt(batch, prompt_version), system=system, model=model, schema=schema)
+        r = claude_cli.call(user_prompt(batch, prompt_version), system=system, model=model, schema=schema,
+                             effort=effort)
         return bi, batch, r, time.time() - t0
 
     preds, calls = {}, []

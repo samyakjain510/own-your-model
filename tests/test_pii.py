@@ -28,3 +28,17 @@ def test_cfpb_mask():
 def test_plain_text_untouched():
     text = "I disputed the late fee twice and nobody answered."
     assert scrub(text).text == text
+
+
+def test_v2_formats_v1_missed():
+    from oym.pii import scrub
+    assert scrub("SSN 694 57 5617 here").text == "SSN [SSN] here"
+    assert scrub("acct AC12345678 and 2672-5672-81").text == "acct [ACCOUNT] and [ACCOUNT]"
+    assert scrub("sent to 12 N Oak St and 44 lakeview drive").text == "sent to [ADDRESS] and [ADDRESS]"
+
+
+def test_v2_leaves_dates_amounts_and_filler_alone():
+    from oym.pii import scrub
+    for s in ["paid 300 to the court on 2024-03-14", "charged $1,250.00 on 03/14/2024 at 3:45 PM, ref 03-14",
+              "made 2 payments on the way"]:
+        assert scrub(s).text == s, s
