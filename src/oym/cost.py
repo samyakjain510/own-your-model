@@ -29,11 +29,13 @@ ROOT = Path(__file__).resolve().parents[2]
 
 @dataclass
 class ClaudeProfile:
-    """Average tokens per task, split the way Claude bills them."""
+    """Average tokens per task, split the way Claude bills them, as measured through the CLI."""
     input: float
     cache_write: float
     cache_read: float
     output: float
+    thinking: float  # part of output; the measured accuracy includes it
+    cli_cost_per_1k: float  # what the CLI itself reported, for transparency
     n_tasks: int
     source_run: str
 
@@ -42,19 +44,30 @@ def claude_profile_from_run(run_dir: str | Path) -> ClaudeProfile:
     run_dir = Path(run_dir)
     calls = [json.loads(line) for line in open(run_dir / "calls.jsonl")]
     n = sum(c["n"] for c in calls)
-    tot = {"input": 0, "cache_write": 0, "cache_read": 0, "output": 0}
+    tot = {"input": 0, "cache_write": 0, "cache_read": 0, "output": 0, "thinking": 0}
     for c in calls:
         u = c["usage"]
         tot["input"] += u.get("input_tokens", 0)
         tot["cache_write"] += u.get("cache_creation_input_tokens", 0)
         tot["cache_read"] += u.get("cache_read_input_tokens", 0)
         tot["output"] += u.get("output_tokens", 0)
-    return ClaudeProfile(**{k: v / n for k, v in tot.items()}, n_tasks=n, source_run=str(run_dir.relative_to(ROOT)))
+        tot["thinking"] += (u.get("output_tokens_details") or {}).get("thinking_tokens", 0)
+    cli = 1000 * sum(c.get("cost_usd_equiv") or 0 for c in calls) / n
+    return ClaudeProfile(**{k: v / n for k, v in tot.items()}, cli_cost_per_1k=cli, n_tasks=n,
+                         source_run=str(run_dir.relative_to(ROOT)))
 
 
-def claude_cost_per_1k(p: ClaudeProfile, price: dict, batch_discount: float = 0.0) -> float:
-    per_task = (p.input * price["input"] + p.cache_write * price["cache_write_5m"]
-                + p.cache_read * price["cache_read"] + p.output * price["output"]) / 1e6
+def claude_cost_per_1k(p: ClaudeProfile, price: dict, batch_discount: float = 0.0, thinking: bool = True) -> float:
+    """Cost for a well-built API integration, from the measured tokens.
+
+    The CLI writes every batch of complaints into a 1-hour cache, which an API user wouldn't do
+    for text read once. So complaint text (input + cache_write) is billed at the plain input
+    price, and the shared instructions (cache_read) at the cache-read price.
+    thinking=False drops the thinking tokens: a what-if, since accuracy was measured with them.
+    """
+    out = p.output if thinking else p.output - p.thinking
+    per_task = ((p.input + p.cache_write) * price["input"] + p.cache_read * price["cache_read"]
+                + out * price["output"]) / 1e6
     return per_task * 1000 * (1 - batch_discount)
 
 
@@ -86,7 +99,10 @@ def break_even(rent_per_1k: float, own_monthly_fn, lo: float = 1e3, hi: float = 
 
 def report(claude_runs: dict[str, str], small_ft_result: str, small_zs_result: str | None,
            inputs_path: str | Path = ROOT / "configs" / "cost_inputs.json",
-           volumes=(10_000, 100_000, 1_000_000, 10_000_000)) -> dict:
+           volumes=(10_000, 100_000, 1_000_000, 10_000_000),
+           throughput: tuple[float, str] | None = None) -> dict:
+    """throughput: (items per second on one GPU, where that number came from). Defaults to the
+    speed measured while scoring dev in the training job (plain Hugging Face generate)."""
     inp = json.loads(Path(inputs_path).read_text())
     disc = inp["batch_discount"]["value"]
     eng = engineering_monthly(inp["engineering"])
@@ -103,10 +119,15 @@ def report(claude_runs: dict[str, str], small_ft_result: str, small_zs_result: s
         price = inp["claude_prices_per_mtok"][model]
         rent[f"(a) {model}, batch"] = claude_cost_per_1k(prof, price, disc)
         out["per_1k"][f"(a) {model}, standard"] = round(claude_cost_per_1k(prof, price, 0.0), 4)
+        out["per_1k"][f"(a) {model}, as the CLI billed it (1-hour cache writes, no batch)"] = round(prof.cli_cost_per_1k, 4)
+        out["per_1k"][f"(a) {model}, batch, no thinking (what-if: accuracy not measured)"] = round(
+            claude_cost_per_1k(prof, price, disc, thinking=False), 4)
         out.setdefault("claude_tokens_per_task", {})[model] = {k: round(getattr(prof, k), 1) for k in
-                                                                ("input", "cache_write", "cache_read", "output")}
+                                                                ("input", "cache_write", "cache_read", "output", "thinking")}
 
-    ft = json.loads(Path(ROOT / small_ft_result).read_text())["timing"]
+    ft = dict(json.loads(Path(ROOT / small_ft_result).read_text())["timing"])
+    ips, ips_src = throughput or (ft["items_per_second"], f"{small_ft_result} (HF generate, batch {ft['batch_size']})")
+    ft["items_per_second"] = ips
     ft_in, ft_out = ft["prompt_tokens"] / ft["items"], ft["output_tokens"] / ft["items"]
     hosted = inp["hosted_open_model_per_mtok"]
     if small_zs_result:
@@ -115,7 +136,7 @@ def report(claude_runs: dict[str, str], small_ft_result: str, small_zs_result: s
             zs["prompt_tokens"] / zs["items"], zs["output_tokens"] / zs["items"], hosted)
     ft_hosted = per_token_cost_per_1k(ft_in, ft_out, hosted)
     out["small_model_tokens_per_task"] = {"fine_tuned": {"prompt": round(ft_in, 1), "output": round(ft_out, 1)}}
-    out["measured_items_per_second_T4"] = ft["items_per_second"]
+    out["items_per_second_one_gpu"] = {"value": ips, "source": ips_src}
     for k, v in rent.items():
         out["per_1k"][k] = round(v, 4)
     out["per_1k"]["(d) fine-tuned, hosted per token (unverified that a host serves this adapter)"] = round(ft_hosted, 4)
