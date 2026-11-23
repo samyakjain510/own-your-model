@@ -49,7 +49,7 @@ Product-and-issue scores three ways:
 | Claude Haiku 5.5, low effort | 0.340 | 0.401 | 0.417 |
 | Qwen3-4B, no training | 0.253 | 0.298 | 0.293 |
 
-Every model scores higher once doubtful labels are set aside, by 5 to 9 points. The order doesn't change.
+Every model scores higher once doubtful labels are set aside, by 4.5 to 9 points. The order doesn't change.
 
 The head-to-head gap between the 8,000-example model and Haiku, with 95% intervals:
 
