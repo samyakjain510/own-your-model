@@ -20,7 +20,7 @@ def main():
     slug = f"oym-bench-{adapter_run}"
     folder = ROOT / "data" / "kaggle" / "kernels" / slug
     folder.mkdir(parents=True, exist_ok=True)
-    code = (ROOT / "kaggle" / "serve_bench.py").read_text().replace("CONFIG = {}  # injected", f"CONFIG = {json.dumps(cfg)}")
+    code = (ROOT / "kaggle" / "serve_bench.py").read_text().replace("CONFIG = {}  # injected", f"CONFIG = {cfg!r}")
     (folder / "serve_bench.py").write_text(code)
     (folder / "kernel-metadata.json").write_text(json.dumps({
         "id": f"{OWNER}/{slug}", "title": slug, "code_file": "serve_bench.py", "language": "python",

@@ -41,7 +41,7 @@ def main():
     slug = cfg["slug"]
     folder = ROOT / "data" / "kaggle" / "kernels" / slug
     folder.mkdir(parents=True, exist_ok=True)
-    code = (ROOT / "kaggle" / "train_eval.py").read_text().replace("CONFIG = {}  # injected", f"CONFIG = {json.dumps(cfg)}")
+    code = (ROOT / "kaggle" / "train_eval.py").read_text().replace("CONFIG = {}  # injected", f"CONFIG = {cfg!r}")
     (folder / "train_eval.py").write_text(code)
     (folder / "kernel-metadata.json").write_text(json.dumps({
         "id": f"{OWNER}/{slug}", "title": slug, "code_file": "train_eval.py", "language": "python",
