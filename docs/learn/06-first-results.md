@@ -19,7 +19,7 @@ Two scores:
 | Qwen3-4B trained on 2,000 examples | 800 | 0.802 [0.773, 0.829] | 0.485 [0.451, 0.520] |
 | Qwen3-4B trained on 8,000 examples | 800 | 0.833 [0.805, 0.857] | 0.540 [0.505, 0.574] |
 | Claude Haiku 5.5, given the label list | 300 | 0.827 [0.780, 0.865] | 0.463 [0.408, 0.520] |
-| Claude Haiku 5.5, same, low effort (no thinking) | 300 | 0.783 [0.733, 0.826] | 0.340 [0.289, 0.395] |
+| Claude Haiku 5.5, same, low effort (little thinking) | 300 | 0.783 [0.733, 0.826] | 0.340 [0.289, 0.395] |
 
 The brackets are 95% intervals: the range the true score probably sits in, given how many complaints we checked.
 
@@ -44,7 +44,7 @@ The 8,000-example model took 3 hours to train on Kaggle's free T4 GPU. Its valid
 
 **The trained model reads a fifth as much.** Without training, every prompt has to carry the full label list: 1,863 tokens per complaint on average. The trained model has learned the labels, so its prompt is just the company and the complaint: 381 tokens. Fewer tokens means a cheaper and faster answer, and lesson 7 turns that into dollars.
 
-**Haiku's thinking is worth paying for.** By default Haiku thought before answering on 23 of 30 calls. At low effort it skipped thinking and used about a quarter of the output tokens, but its product-and-issue score fell 12 points (interval 8 to 17). So the fair "rent" price is the one with thinking.
+**Haiku's thinking is worth paying for.** By default Haiku thought before answering on 23 of 30 calls. At low effort it thought much less (25 thinking tokens per complaint instead of 138) and wrote 40% as many output tokens, but its product-and-issue score fell 12 points (interval 8 to 17). So the fair "rent" price is the one with thinking.
 
 ## What these results don't show yet
 

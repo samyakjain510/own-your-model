@@ -13,4 +13,7 @@
 
 ## Not coded yet
 
-- **Issue-level misses.** Product+issue accuracy is ~43–46% on dev, so most errors are at the issue level. These need the same open-coding pass. The early hypothesis is that many issue pairs overlap (for example "Attempts to collect debt not owed" vs. "False statements or representation"), so consumers pick inconsistently. That hypothesis is untested.
+- **Issue-level misses: counted, not yet read.** A code-only count of mix-ups where the product was right and the issue wrong (`dev`, no complaint text read):
+  - Qwen3-4B trained on 8,000 (800 complaints): product wrong 16.4%, product right but issue wrong 29.2%. Haiku (300 complaints): 17.3% and 36.3%. So most misses for both models are at the issue level.
+  - The biggest cluster is three Debt collection issues that both models swap in every direction: "Attempts to collect debt not owed", "False statements or representation" and "Written notification about debt" (48 of the small model's 234 issue misses). The next are Checking "Managing an account" vs. fee and investigation issues, and Money transfer "Fraud or scam" vs. "Unauthorized transactions".
+  - That fits the overlap hypothesis: a letter demanding a debt the consumer says they don't owe can honestly be any of the three. Reading the texts to confirm it is still to do.
