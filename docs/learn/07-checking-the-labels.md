@@ -35,8 +35,34 @@ The checker disagreed with 1 in 10 of the consumers' products and 1 in 8 of thei
 
 So I don't replace the logged labels with the checker's. I report scores both ways: against the logged labels, and against only the complaints whose label the checker accepted. If a model wins both ways, the label noise isn't what's deciding the result.
 
+## What happened on the 300 complaints both models answered
+
+The checker accepted 252 of the 300 logged labels. It called 23 the wrong product and 25 the wrong issue.
+
+Product-and-issue scores three ways:
+
+| Model | Logged labels (300) | Only labels the checker accepted (252) | Logged or checker's label counts (300) |
+|---|---|---|---|
+| Qwen3-4B trained on 8,000 | 0.570 | 0.659 | 0.637 |
+| Qwen3-4B trained on 2,000 | 0.500 | 0.575 | 0.570 |
+| Claude Haiku 5.5 | 0.463 | 0.552 | 0.553 |
+| Claude Haiku 5.5, low effort | 0.340 | 0.401 | 0.417 |
+| Qwen3-4B, no training | 0.253 | 0.298 | 0.293 |
+
+Every model scores higher once doubtful labels are set aside, by 5 to 9 points. The order doesn't change.
+
+The head-to-head gap between the 8,000-example model and Haiku, with 95% intervals:
+
+| View | Product | Product and issue |
+|---|---|---|
+| Logged labels | +1.7 (−1.3 to +5.3) | +10.7 (+5.3 to +16.0) |
+| Only labels the checker accepted | +1.8 (−1.4 to +5.4) | +10.7 (+4.4 to +17.1) |
+| Logged or checker's label counts | +1.7 (−1.3 to +5.3) | +8.3 (+2.3 to +14.7) |
+
+The small model's lead on the harder score holds in every view, and the two are level on product in every view.
+
 ## One thing to watch
 
-The checker and Haiku are both Claude models. If they share a view of what a label means, the checker's version could tilt toward Haiku. I'll check that by seeing how much each model's score moves when the flagged complaints are dropped.
+The checker and Haiku are both Claude models. If they share a view of what a label means, the checker's version could tilt toward Haiku. There's a small sign of that: when the checker's suggested label also counts as right, Haiku gains 9 points and the 8,000-example model gains 7, so the gap narrows from 10.7 to 8.3. It doesn't close.
 
-Where the numbers come from: `runs/audit-calib-opus55-n400/score.json` and `verdicts.jsonl`; code in `src/oym/audit.py`.
+Where the numbers come from: `runs/audit-calib-opus55-n400/score.json`, `runs/audit-dev300-opus55/`, `runs/compare/dev300_audited*.json`; code in `src/oym/audit.py`.

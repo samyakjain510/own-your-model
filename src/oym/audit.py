@@ -219,3 +219,27 @@ def audited_scores(pred_dir, audit_dir) -> dict:
                       "kept_only": str(wilson(kept_ok, kept_n)),
                       "logged_or_checker": str(wilson(either_ok, len(preds)))}
     return out
+
+
+def paired_audited(pred_a, pred_b, audit_dir) -> dict:
+    """Paired gap (A minus B) on the complaints the checker accepted, and with 'logged or checker' credit."""
+    from .metrics import paired_diff_ci
+    verdicts = {json.loads(l)["trace_id"]: json.loads(l)["verdict"] for l in open(Path(audit_dir) / "verdicts.jsonl")}
+    a = {json.loads(l)["trace_id"]: json.loads(l) for l in open(Path(pred_a) / "predictions.jsonl")}
+    b = {json.loads(l)["trace_id"]: json.loads(l) for l in open(Path(pred_b) / "predictions.jsonl")}
+    ids = sorted(set(a) & set(b) & {k for k, v in verdicts.items() if v})
+    out = {"a": str(pred_a), "b": str(pred_b), "audit_run": str(audit_dir)}
+    for level in ("product", "product_and_issue"):
+        def match(p, lab):
+            p = p or {}
+            return p.get("product") == lab["product"] and (level == "product" or p.get("issue") == lab["issue"])
+        kept = [i for i in ids if verdicts[i]["verdict"] == "fits" or (level == "product" and verdicts[i]["verdict"] == "wrong_issue")]
+        ka = [match(a[i]["pred"], a[i]["gold"]) for i in kept]
+        kb = [match(b[i]["pred"], b[i]["gold"]) for i in kept]
+        ea = [match(a[i]["pred"], a[i]["gold"]) or (verdicts[i]["verdict"] != "fits" and match(a[i]["pred"], verdicts[i])) for i in ids]
+        eb = [match(b[i]["pred"], b[i]["gold"]) or (verdicts[i]["verdict"] != "fits" and match(b[i]["pred"], verdicts[i])) for i in ids]
+        pk, lk, hk = paired_diff_ci(ka, kb)
+        pe, le, he = paired_diff_ci(ea, eb)
+        out[level] = {"kept_only": {"n": len(kept), "a_minus_b": round(pk, 3), "ci95": [round(lk, 3), round(hk, 3)]},
+                      "logged_or_checker": {"n": len(ids), "a_minus_b": round(pe, 3), "ci95": [round(le, 3), round(he, 3)]}}
+    return out
