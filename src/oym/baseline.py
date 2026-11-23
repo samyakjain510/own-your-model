@@ -23,10 +23,35 @@ from . import claude_cli
 from .schema import read_traces
 from .split import MAX_WORDS, verify_frozen
 
-PROMPT_VERSIONS = ("route-v1", "route-v2")
+PROMPT_VERSIONS = ("route-v1", "route-v2", "route-v3")
 # route-v1: complaint text only.
 # route-v2: adds the company the complaint is filed against (it's on the intake form) and one
 #           routing rule: the product is the kind of account the consumer has with that company.
+# route-v3: route-v2 plus 22 worked examples (2 per product, short complaints) taken from the
+#           TRAINING pool, never from dev or test. Gives Claude the same kind of hint the small
+#           model gets from training, in a form a rented model can use.
+
+EXAMPLES_PATH = Path(__file__).resolve().parents[2] / "data" / "train" / "train_8000.jsonl"
+
+
+def worked_examples(labels: dict[str, list[str]], per_product: int = 2, seed: int = 0,
+                    min_words: int = 40, max_words: int = 120) -> list[dict]:
+    """Pick short training examples, per_product for each product, with different issues when possible."""
+    rows = [json.loads(line) for line in open(EXAMPLES_PATH)]
+    rng = random.Random(seed)
+    rng.shuffle(rows)
+    picked, seen = {p: [] for p in labels}, set()
+    for r in rows:
+        user, answer = r["messages"][1]["content"], json.loads(r["messages"][2]["content"])
+        company, _, text = user.partition("\n\nComplaint:\n")
+        p, i = answer["product"], answer["issue"]
+        n = len(text.split())
+        if p not in picked or len(picked[p]) >= per_product or (p, i) in seen or not (min_words <= n <= max_words):
+            continue
+        picked[p].append({"trace_id": r["trace_id"], "company": company.removeprefix("Company: "), "text": text,
+                          "product": p, "issue": i})
+        seen.add((p, i))
+    return [e for p in sorted(picked) for e in picked[p]]
 
 
 def truncate(text: str, max_words: int = MAX_WORDS) -> str:
@@ -41,7 +66,7 @@ def system_prompt(labels: dict[str, list[str]], prompt_version: str = "route-v1"
              "Protection Bureau. For each complaint, pick exactly one product and one issue from the list below. "
              "The issue must be one listed under the product you pick. Pick what the complaint is mainly about. "
              "Text like [REDACTED] marks details removed for privacy.")
-    if prompt_version == "route-v2":
+    if prompt_version in ("route-v2", "route-v3"):
         intro += ("\n\nEach complaint shows the company it was filed against. The product is the kind of account "
                   "or service the consumer has with that company. For example, a complaint against a debt collector "
                   "or debt buyer is Debt collection even if it mentions a credit report, and a complaint against a "
@@ -55,6 +80,11 @@ def system_prompt(labels: dict[str, list[str]], prompt_version: str = "route-v1"
         lines.append(f"\nPRODUCT: {product}")
         for issue in labels[product]:
             lines.append(f"  - {issue}")
+    if prompt_version == "route-v3":
+        lines.append("\nWorked examples (real complaints with the label the consumer picked):")
+        for k, e in enumerate(worked_examples(labels), 1):
+            lines.append(f'\n<example n="{k}" company="{e["company"]}">\n{e["text"]}\n</example>\n'
+                         f'Answer: product="{e["product"]}", issue="{e["issue"]}"')
     lines.append("\nReturn one answer per complaint, using the complaint's id.")
     return "\n".join(lines)
 
@@ -91,7 +121,7 @@ def user_prompt(batch, prompt_version: str = "route-v1") -> str:
     parts = [f"Route these {len(batch)} complaints.\n"]
     for t in batch:
         attrs = f'id="{t.trace_id}"'
-        if prompt_version == "route-v2":
+        if prompt_version in ("route-v2", "route-v3"):
             attrs += f' company="{company_of(t)}"'
         parts.append(f'<complaint {attrs}>\n{truncate(t.input)}\n</complaint>\n')
     return "\n".join(parts)
