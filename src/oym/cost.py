@@ -100,14 +100,18 @@ def break_even(rent_per_1k: float, own_monthly_fn, lo: float = 1e3, hi: float = 
 def report(claude_runs: dict[str, tuple[str, str]], small_ft_result: str, small_zs_result: str | None,
            inputs_path: str | Path = ROOT / "configs" / "cost_inputs.json",
            volumes=(10_000, 100_000, 1_000_000, 10_000_000),
-           throughput: tuple[float, str] | None = None) -> dict:
+           throughput: tuple[float, str] | None = None, gpu_name: str | None = None) -> dict:
     """claude_runs: {label: (price key in cost_inputs.json, run dir)}.
+    gpu_name: which GPU in cost_inputs.json to rent; use the one the throughput was measured on.
     throughput: (items per second on one GPU, where that number came from). Defaults to the
     speed measured while scoring dev in the training job (plain Hugging Face generate)."""
     inp = json.loads(Path(inputs_path).read_text())
     disc = inp["batch_discount"]["value"]
     eng = engineering_monthly(inp["engineering"])
-    gpu_name, gpu = min(inp["gpu_hourly"].items(), key=lambda kv: kv[1]["usd_per_hour"])
+    if gpu_name:
+        gpu = inp["gpu_hourly"][gpu_name]
+    else:
+        gpu_name, gpu = min(inp["gpu_hourly"].items(), key=lambda kv: kv[1]["usd_per_hour"])
     util = inp["self_host"]["max_utilization"]["value"]
 
     out = {"inputs": {"gpu": gpu_name, "gpu_usd_per_hour": gpu["usd_per_hour"], "max_utilization": util,
@@ -154,10 +158,19 @@ def report(claude_runs: dict[str, tuple[str, str]], small_ft_result: str, small_
         row["(d) fine-tuned hosted per token + engineering"] = round(own_hosted(v), 2)
         out["monthly_at_volume"][f"{v:,}/month"] = row
 
+    def fmt(v):
+        if v is None:
+            return "never below 1B/month"
+        return "cheaper at any volume" if v <= 1e3 else f"{v:,.0f}/month"
+
     for k, r in rent.items():
-        be_gpu = break_even(r, own_gpu)
-        be_host = break_even(r, own_hosted)
         out["break_even_monthly_volume"][k] = {
-            "vs own GPU": f"{be_gpu:,.0f}/month" if be_gpu else "never below 1B/month",
-            "vs hosted fine-tuned": f"{be_host:,.0f}/month" if be_host else "never below 1B/month"}
+            "vs own GPU": fmt(break_even(r, own_gpu)),
+            "vs hosted fine-tuned": fmt(break_even(r, own_hosted)),
+            "vs own GPU, engineering left out": fmt(break_even(r, lambda v: own_gpu(v) - eng)),
+            "vs hosted fine-tuned, engineering left out": fmt(break_even(r, lambda v: own_hosted(v) - eng))}
+    out["own_gpu_items_per_second_needed_to_match"] = {
+        k: round(gpu["usd_per_hour"] / (r / 1000 * 3600 * util), 2) for k, r in rent.items()}
+    out["own_gpu_cost_per_1k_when_full"] = round(
+        gpu["usd_per_hour"] / (ft["items_per_second"] * 3600 * util) * 1000, 4)
     return out
