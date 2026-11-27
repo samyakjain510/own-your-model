@@ -10,7 +10,7 @@ Hard rule for this project: spend $0. No API keys, no paid GPUs, no sign-ups tha
 
 ### Short list
 
-All sizes are from the Hugging Face model cards (accessed 2026-11-22). Gemma is left out on purpose.
+All sizes are from the Hugging Face model cards (accessed 2026-11-22).
 
 | Model | Params | License | Context | Released | MLX-LM | Unsloth |
 |---|---|---|---|---|---|---|

@@ -13,7 +13,7 @@ Every number points to a saved run: `runs/final/summary.json` and `docs/learn/09
 ## Quickstart (no installs, Python 3.10+)
 
 ```bash
-git clone <repo> && cd own-your-model
+git clone https://github.com/samyakjain510/own-your-model.git && cd own-your-model
 PYTHONPATH=src python3 -m oym quickstart
 ```
 
